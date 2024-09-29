@@ -1,33 +1,31 @@
 package com.example.bluetooth;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
-
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.BluetoothSocket;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.Toast;
-
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,133 +34,74 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("bluetooth");
     }
 
-    private final int REQUEST_CODE=100;
-    BluetoothAdapter mBluetoothAdapter;
+    //request code
+    //bluetooth
+    public BluetoothAdapter mBluetoothAdapter;
     BluetoothManager mBluetoothManager;
-    BluetoothDevice mBluetoothDevice;
-    BluetoothSocket mBluetoothSocket;
 
     String TAG="error";
 
-    Button mButton;
+    public ActivityResultLauncher launcher;
 
-    Thread ConnectThread=new Thread(){
-        @Override
-        public void run(){
-            connectToDevice();
-        }
-    };
+    //list of devices using recycle view
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle saveInstance){
         super.onCreate(saveInstance);
         setContentView(R.layout.activity_main);
 
+        //check permission
         checkPermissions();
-
-        mButton=(Button)findViewById(R.id.sendButton);
-
-        mButton.setOnClickListener(new View.OnClickListener() {
+        launcher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
-            public void onClick(View view) {
-                int cmd=0x32;
-                send(cmd);
+            public void onActivityResult(ActivityResult o) {
+                if(o!=null){
+                    Toast.makeText(MainActivity.this, "yep", Toast.LENGTH_SHORT).show();
+                }
             }
         });
-
     }
 
     @Override
     public void onResume(){
         super.onResume();
-        mBluetoothManager=(BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
-        mBluetoothAdapter=mBluetoothManager.getAdapter();
-        Set<BluetoothDevice> pairedDevices=null;
-        try {
-            pairedDevices =mBluetoothAdapter.getBondedDevices();
-            Toast.makeText(this,String.valueOf(pairedDevices.size()), Toast.LENGTH_SHORT).show();
-            TextView textView=(TextView) findViewById(R.id.deviseList);
-            StringBuilder stringBuilder=new StringBuilder();
-            for(BluetoothDevice device:pairedDevices){
-                mBluetoothDevice=device;
-                stringBuilder.append(textView.getText()).append(device.getName()).append(" ").append(Arrays.toString(device.getUuids()));
-                break;
-            }
-            textView.setText(stringBuilder.toString());
-            ConnectThread.start();
 
-        }catch (SecurityException s){
-            s.printStackTrace();
-        }
+        //initial the recycleView
+        initRecycleView();
     }
 
     @Override
     public void onDestroy(){
-        try{
-            mBluetoothSocket.close();
-        }catch (IOException i){
-            Log.e(TAG,i.getMessage());
-        }
         super.onDestroy();
     }
 
-    void connectToDevice(){
-        try {
-            UUID uuid = mBluetoothDevice.getUuids()[1].getUuid();
-            mBluetoothSocket = mBluetoothDevice.createRfcommSocketToServiceRecord(uuid);
-            mBluetoothSocket.connect();
-            if (mBluetoothSocket.isConnected()) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        TextView textView = (TextView) findViewById(R.id.deviceStatus);
-                        StringBuilder stringBuilder = new StringBuilder();
-                        stringBuilder.append(textView.getText()).append("successful");
-                        textView.setText(stringBuilder.toString());
-                    }
-                });
-            }
-            else{
-                mBluetoothSocket.close();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        TextView textView = (TextView) findViewById(R.id.deviceStatus);
-                        StringBuilder stringBuilder = new StringBuilder();
-                        stringBuilder.append(textView.getText()).append("failed");
-                        textView.setText(stringBuilder.toString());
-                    }
-                });
-
-            }
-        }
-        catch(SecurityException | IOException s){
-            try{
-                Method method=mBluetoothDevice.getClass().getMethod("createRfcommSocketToServiceRecord", UUID.class);
-                mBluetoothSocket=(BluetoothSocket) method.invoke(mBluetoothDevice,mBluetoothDevice.getUuids()[0].getUuid());
-                mBluetoothSocket.connect();
-            }catch (Exception e){
-                Log.e(TAG,e.getMessage());
-                try {
-                    mBluetoothSocket.close();
-                }catch (IOException i){
-                    Log.e(TAG,e.getMessage());
-                }
-            }
+    //item animation
+    private void initRecycleView() {
+        //bind recyclerView
+        recyclerView=(RecyclerView) findViewById(R.id.deviceList);
+        LinearLayoutManager manager=new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
+        recyclerView.setLayoutManager(manager);
+        mBluetoothManager=(BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
+        mBluetoothAdapter=mBluetoothManager.getAdapter();
+        Set<BluetoothDevice> pairedDevices=null;
+        try{
+            pairedDevices=mBluetoothAdapter.getBondedDevices();
+            DeviceAdapter adapter=new DeviceAdapter(this,pairedDevices.toArray(new BluetoothDevice[pairedDevices.size()]),mBluetoothAdapter,this);
+            DividerItemDecoration divider=new DividerItemDecoration(this,manager.getOrientation());
+            recyclerView.addItemDecoration(divider);
+            Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.item_animate);
+            LayoutAnimationController layoutAnimationController = new LayoutAnimationController(animation);
+            layoutAnimationController.setOrder(LayoutAnimationController.ORDER_NORMAL);
+            layoutAnimationController.setDelay(0.2f);
+            recyclerView.setLayoutAnimation(layoutAnimationController);
+            recyclerView.setAdapter(adapter);
+        }catch (SecurityException s){
+            Log.e(TAG, Objects.requireNonNull(s.getMessage()));
         }
     }
 
-
-    void send(int commend){
-        try {
-            OutputStream outputStream = mBluetoothSocket.getOutputStream();
-            outputStream.write(commend);
-            outputStream.flush();
-        }catch (IOException i){
-            Log.e(TAG,i.getMessage());
-        }
-    }
-
+    //check permissions
     void checkPermissions(){
         List<String> permissions=new ArrayList<>();
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)!=PackageManager.PERMISSION_GRANTED){
@@ -184,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         }
         if(!permissions.isEmpty()){
-            ActivityCompat.requestPermissions(this,permissions.toArray(new String[permissions.size()]),REQUEST_CODE);
+            ActivityCompat.requestPermissions(this,permissions.toArray(new String[permissions.size()]),Constants.PERMISSION_REQUEST_CODE);
         }
         else{
             return;
@@ -194,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
         super.onRequestPermissionsResult(requestCode,permissions,grantResults);
-        if(requestCode==REQUEST_CODE){
+        if(requestCode==Constants.PERMISSION_REQUEST_CODE){
             for(int grant:grantResults) {
                 if (grant != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "error granted", Toast.LENGTH_SHORT).show();

@@ -11,36 +11,19 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         >
-
-        <EditText
-            android:id="@+id/cmd"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="17sp"/>
-
-        <Button
-            android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="send"
-            android:textSize="17sp"
-            android:background="@color/purple_200" />
-
         <TextView
-            android:id="@+id/deviseList"
-            android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:textSize="17sp"
-            android:textColor="@color/black"
-            android:text="Device: "/>
+            android:layout_height="wrap_content"
+            android:text="BlueTooth Devices List"
+            android:layout_gravity="center"
+            android:textSize="25sp"
+            android:textColor="@color/white"
+            android:background="@color/purple_200"/>
 
-        <TextView
-            android:id="@+id/deviceStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textSize="17sp"
-            android:textColor="@color/black"
-            android:text="Status: "/>
+       <androidx.recyclerview.widget.RecyclerView
+           android:id="@+id/deviceList"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"/>
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

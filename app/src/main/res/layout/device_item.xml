@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/deviceName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Name: "
+        android:textColor="@color/black"
+        android:layout_margin="10sp"
+        android:textFontWeight="@integer/material_motion_duration_medium_1"
+        android:textSize="20sp"/>
+
+
+    <TextView
+        android:id="@+id/macAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MAC: "
+        android:layout_margin="10sp"
+        android:textSize="18sp"/>
+
+</LinearLayout>
