@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onActivityResult(ActivityResult o) {
                 if(o!=null){
-                    Toast.makeText(MainActivity.this, "yep", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "back", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -121,6 +121,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if(ContextCompat.checkSelfPermission(this,Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED){
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        }
+        if(ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA)!=PackageManager.PERMISSION_GRANTED){
+            permissions.add(Manifest.permission.CAMERA);
         }
         if(!permissions.isEmpty()){
             ActivityCompat.requestPermissions(this,permissions.toArray(new String[permissions.size()]),Constants.PERMISSION_REQUEST_CODE);

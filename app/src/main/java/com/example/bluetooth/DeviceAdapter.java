@@ -3,10 +3,8 @@ package com.example.bluetooth;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,6 +51,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.MyHolder> 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //start camera activity
                 mBluetoothDevice=devices[position];
                 Intent intent=new Intent(activity,CameraActivity.class);
                 intent.putExtra("device",mBluetoothDevice);
@@ -77,5 +76,4 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.MyHolder> 
             macText=view.findViewById(R.id.macAddress);
         }
     }
-
 }
