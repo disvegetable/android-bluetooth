@@ -15,7 +15,10 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.usb.UsbDevice;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.animation.Animation;
@@ -23,6 +26,8 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.Toast;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,13 +43,19 @@ public class MainActivity extends AppCompatActivity {
     //bluetooth
     public BluetoothAdapter mBluetoothAdapter;
     BluetoothManager mBluetoothManager;
+    UsbManager mUsbManager;
+    UsbDevice mUsbDevice;
 
     String TAG="error";
 
-    public ActivityResultLauncher launcher;
+    public ActivityResultLauncher BluetoothLauncher;
+    public ActivityResultLauncher USBLauncher;
 
-    //list of devices using recycle view
-    RecyclerView recyclerView;
+    //list of bluetooth devices using recycle view
+    RecyclerView BluetoothRecyclerView;
+
+    //list of bluetooth devices using recycle view
+    RecyclerView USBRecyclerView;
 
     @Override
     protected void onCreate(Bundle saveInstance){
@@ -53,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
 
         //check permission
         checkPermissions();
-        launcher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        //start camera activity,bluetooth
+        BluetoothLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult o) {
                 if(o!=null){
@@ -61,14 +73,40 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        //start camera activity,USB
+        USBLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult o) {
+                if(o!=null){
+                    Toast.makeText(MainActivity.this, "back", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        //usb service
+        mUsbManager = (UsbManager) getSystemService(USB_SERVICE);
+        if (!mUsbManager.getDeviceList().isEmpty()) {
+            HashMap<String, UsbDevice> deviceList = mUsbManager.getDeviceList();
+            Iterator<UsbDevice> iterator = deviceList.values().iterator();
+            if (iterator.hasNext()) {
+                mUsbDevice = iterator.next();
+                //check usb permission
+                if (!mUsbManager.hasPermission(mUsbDevice)) {
+                    Intent intent = new Intent(this, usbPermissionActivity.class);
+                    startActivity(intent);
+                }
+            }
+        }
     }
 
     @Override
     public void onResume(){
         super.onResume();
 
-        //initial the recycleView
-        initRecycleView();
+        //initial the Bluetooth recycleView
+        initBluetoothRecycleView();
+        //initial the USB recycleView
+        initUSBRecycleView();
     }
 
     @Override
@@ -77,28 +115,46 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //item animation
-    private void initRecycleView() {
+    private void initBluetoothRecycleView() {
         //bind recyclerView
-        recyclerView=(RecyclerView) findViewById(R.id.deviceList);
+        BluetoothRecyclerView=(RecyclerView) findViewById(R.id.BluetoothDeviceList);
         LinearLayoutManager manager=new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
-        recyclerView.setLayoutManager(manager);
+        BluetoothRecyclerView.setLayoutManager(manager);
         mBluetoothManager=(BluetoothManager)getSystemService(BLUETOOTH_SERVICE);
         mBluetoothAdapter=mBluetoothManager.getAdapter();
         Set<BluetoothDevice> pairedDevices=null;
         try{
             pairedDevices=mBluetoothAdapter.getBondedDevices();
-            DeviceAdapter adapter=new DeviceAdapter(this,pairedDevices.toArray(new BluetoothDevice[pairedDevices.size()]),mBluetoothAdapter,this);
+            DeviceAdapter_Bluetooth adapter=new DeviceAdapter_Bluetooth(this,pairedDevices.toArray(new BluetoothDevice[pairedDevices.size()]),mBluetoothAdapter,this);
             DividerItemDecoration divider=new DividerItemDecoration(this,manager.getOrientation());
-            recyclerView.addItemDecoration(divider);
+            BluetoothRecyclerView.addItemDecoration(divider);
+            //set item animation
             Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.item_animate);
             LayoutAnimationController layoutAnimationController = new LayoutAnimationController(animation);
             layoutAnimationController.setOrder(LayoutAnimationController.ORDER_NORMAL);
             layoutAnimationController.setDelay(0.2f);
-            recyclerView.setLayoutAnimation(layoutAnimationController);
-            recyclerView.setAdapter(adapter);
+            BluetoothRecyclerView.setLayoutAnimation(layoutAnimationController);
+            BluetoothRecyclerView.setAdapter(adapter);
         }catch (SecurityException s){
             Log.e(TAG, Objects.requireNonNull(s.getMessage()));
         }
+    }
+
+    private void initUSBRecycleView(){
+        USBRecyclerView=(RecyclerView) findViewById(R.id.USBDeviceList);
+        LinearLayoutManager manager=new LinearLayoutManager(this,LinearLayoutManager.VERTICAL,false);
+        USBRecyclerView.setLayoutManager(manager);
+        mUsbManager=(UsbManager) getSystemService(USB_SERVICE);
+        DeviceAdapter_USB adapter=new DeviceAdapter_USB(mUsbManager,this,this);
+        DividerItemDecoration divider=new DividerItemDecoration(this,manager.getOrientation());
+        USBRecyclerView.addItemDecoration(divider);
+        //set item animation
+        Animation animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.item_animate);
+        LayoutAnimationController layoutAnimationController = new LayoutAnimationController(animation);
+        layoutAnimationController.setOrder(LayoutAnimationController.ORDER_NORMAL);
+        layoutAnimationController.setDelay(0.2f);
+        USBRecyclerView.setLayoutAnimation(layoutAnimationController);
+        USBRecyclerView.setAdapter(adapter);
     }
 
     //check permissions

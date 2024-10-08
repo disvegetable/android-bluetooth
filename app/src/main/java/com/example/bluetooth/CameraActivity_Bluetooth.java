@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity_Bluetooth extends AppCompatActivity {
 
     BluetoothDevice mBluetoothDevice;
     BluetoothSocket mBluetoothSocket;
@@ -202,7 +202,7 @@ public class CameraActivity extends AppCompatActivity {
                     CameraSelector cameraSelector=CameraSelector.DEFAULT_BACK_CAMERA;
                     //unbind all camera
                     cameraProvider.unbindAll();
-                    cameraProvider.bindToLifecycle(CameraActivity.this,cameraSelector,preview);
+                    cameraProvider.bindToLifecycle(CameraActivity_Bluetooth.this,cameraSelector,preview);
                 } catch (ExecutionException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -290,7 +290,7 @@ public class CameraActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     public void addCommendHistory(String commend, int color){
         LinearLayout linearLayout=(LinearLayout) findViewById(R.id.cmdHistory);
-        TextView textView=new TextView(CameraActivity.this);
+        TextView textView=new TextView(CameraActivity_Bluetooth.this);
         textView.setText(commend);
         textView.setTextColor(color);
         linearLayout.addView(textView);

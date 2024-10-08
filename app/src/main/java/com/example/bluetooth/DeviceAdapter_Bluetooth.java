@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 
-public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.MyHolder> {
+public class DeviceAdapter_Bluetooth extends RecyclerView.Adapter<DeviceAdapter_Bluetooth.MyHolder> {
 
     Context context;
     BluetoothDevice[] devices;
@@ -24,7 +24,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.MyHolder> 
 
     String TAG="ERROR";
 
-    public DeviceAdapter(Context context,BluetoothDevice[] devices,BluetoothAdapter adapter,MainActivity activity){
+    public DeviceAdapter_Bluetooth(Context context, BluetoothDevice[] devices, BluetoothAdapter adapter, MainActivity activity){
         this.context=context;
         this.devices=devices;
         this.layoutInflater=LayoutInflater.from(context);
@@ -34,7 +34,7 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.MyHolder> 
     @NonNull
     @Override
     public MyHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view=layoutInflater.inflate(R.layout.device_item,parent,false);
+        View view=layoutInflater.inflate(R.layout.bluetooth_device_item,parent,false);
         return new MyHolder(view);
     }
 
@@ -53,9 +53,9 @@ public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.MyHolder> 
             public void onClick(View view) {
                 //start camera activity
                 mBluetoothDevice=devices[position];
-                Intent intent=new Intent(activity,CameraActivity.class);
+                Intent intent=new Intent(activity, CameraActivity_Bluetooth.class);
                 intent.putExtra("device",mBluetoothDevice);
-                activity.launcher.launch(intent);
+                activity.BluetoothLauncher.launch(intent);
             }
         });
     }

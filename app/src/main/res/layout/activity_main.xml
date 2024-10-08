@@ -7,9 +7,12 @@
     tools:context=".MainActivity">
 
     <LinearLayout
+        android:id="@+id/bluetoothList"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintHeight_percent="0.5"
         >
         <TextView
             android:layout_width="match_parent"
@@ -21,9 +24,34 @@
             android:background="@color/purple_200"/>
 
        <androidx.recyclerview.widget.RecyclerView
-           android:id="@+id/deviceList"
+           android:id="@+id/BluetoothDeviceList"
            android:layout_width="match_parent"
            android:layout_height="match_parent"/>
 
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/usbList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/bluetoothList"
+        app:layout_constraintHeight_percent="0.5">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="USB Devices List"
+            android:layout_gravity="center"
+            android:textSize="25sp"
+            android:textColor="@color/white"
+            android:background="@color/teal_700"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/USBDeviceList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
